@@ -1,0 +1,6 @@
+    
+    // ADCSRA = _BV(ADEN) | _BV(ADPS2); //Enable ADC with prescaler=16
+    // Select ADC pin ADC0 (MUX1 defined) and align to the left
+    //ADMUX = _BV(ADLAR|ADSC|1<<MUX0);  
+    //PORTD &= 0X00;
+   
