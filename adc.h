@@ -9,10 +9,9 @@
 #define ADC_H_
 
 #include <avr/io.h>
-
-void initADC(void);
 uint16_t adc_read(uint8_t ch);
 void adc_read_int(uint8_t ch);
+void initADC(void);
 #endif /* ADC_H_ */
 
 

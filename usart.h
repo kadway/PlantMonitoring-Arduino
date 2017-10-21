@@ -7,6 +7,7 @@
 
 #ifndef USART_H_
 #define USART_H_
+#include <stdlib.h>
 
 #define FOSC 16000000 // Clock Speed
 #define BAUD 9600

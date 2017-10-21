@@ -7,68 +7,51 @@
 
 #include <stdio.h>
 #include <avr/io.h>
-
+#include <stdlib.h>
 #include "platform.h"
 #include "leds.h"
+#include "usart.h"
 
 void initLeds(void)
 {
-DDRD |= 0xFF; // complete PORTD as output for leds (8 leds)
-DDRB |= WHITE_S3; //led is on PORTB or IO8 of the board
-ledsOFF(0XFF, 0); // all leds off
-ledsOFF(WHITE_S3, 2); // last led in PORTB off
+DDRD |= G1|Y1|W1|G2|Y2|W2; //leds for sensor 1 & 2
+DDRB |= G3|Y3|W3; 		   //leds for sensor 3
+ledsOFF(LEDS_PD, 1); 	   //leds off
+ledsOFF(LEDS_PB, 2);	   //leds off
 }
 
 void humidityevaluate(waterSensor sensor){
-	switch (sensor.id){
-	case 0:{
-			if (sensor.val<=340){
-				ledsON(GREEN_S1, sensor.id);
-				ledsOFF(YELLOW_S1|WHITE_S1, sensor.id);
-				}
-			else if (sensor.val>340 && sensor.val <680){
-				ledsON(YELLOW_S1,sensor.id);
-				ledsOFF(GREEN_S1|WHITE_S1, sensor.id);
-				}
-			else if (sensor.val>=680){
-				ledsON(WHITE_S1, sensor.id);
-				ledsOFF(GREEN_S1|YELLOW_S1, sensor.id);
-			}
-			break;
-		}
-	case 1:{
-			if (sensor.val<=340){
-				ledsON(GREEN_S2, sensor.id);
-				ledsOFF(YELLOW_S2|WHITE_S2, sensor.id);
-			}
-			else if (sensor.val>340 && sensor.val <680){
-				ledsON(YELLOW_S2,sensor.id);
-				ledsOFF(GREEN_S2|WHITE_S2, sensor.id);
-			}
-			else if (sensor.val>=680){
-				ledsON(WHITE_S2, sensor.id);
-				ledsOFF(GREEN_S2|YELLOW_S2, sensor.id);
-			}
-			break;
-	}
-	case 2:{
-			if (sensor.val<=340){
-				ledsON(GREEN_S3, sensor.id);
-				ledsOFF(YELLOW_S3, sensor.id);
-				ledsOFF(WHITE_S3, sensor.id);
-				}
-			else if (sensor.val>340 && sensor.val <680){
-				ledsON(YELLOW_S3,sensor.id);
-				ledsOFF(GREEN_S3, sensor.id);
-				ledsOFF(WHITE_S3, sensor.id);
-				}
-			else if (sensor.val>=680){
-				ledsON(WHITE_S3, sensor.id);
-				ledsOFF(GREEN_S3|YELLOW_S3, sensor.id);
-				}
-			break;
-	}
-	default: break;
-	}
+	// still to adapt to new defines and LED abstraction...
+
+//			if (sensor.val<=340){
+//				if(sensor.id==2){
+//					ledsON(G3, 2);
+//					ledsOFF(Y3|W3, 2);
+//				}
+//				else{
+//					ledsON()
+//				}
+//			else if (sensor.val>340 && sensor.val <680){
+//				ledsON(YELLOW_S1,sensor.id);
+//				ledsOFF(GREEN_S1|WHITE_S1, sensor.id);
+//				}
+//			else if (sensor.val>=680){
+//				ledsON(WHITE_S1, sensor.id);
+//				ledsOFF(GREEN_S1|YELLOW_S1, sensor.id);
+//			}
 	return;
+}
+
+void serial_send(waterSensor sensor){
+	char start[5]={"start"};
+	//char id[2]= {"  "};
+	//char value[4] = {"    "};
+	//itoa(sensor.id, id, 10);
+	//itoa(sensor.val, value, 10);
+	//USART_Transmit(0x83);
+	serial_poll_send(start, sizeof(start));
+	//serial_poll_send(id, sizeof(id));
+	//serial_poll_send(value, sizeof(value));
+	serial_poll_send(&sensor.id, sizeof(uint8_t));
+	serial_poll_send(&sensor.val, sizeof(uint16_t));
 }

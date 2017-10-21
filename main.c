@@ -1,15 +1,20 @@
 /*
- * main2.c
+ * main.c
  *
  *  Created on: Oct 3, 2017
  *      Author: johny
  */
+
+//#ifndef __AVR_ATmega328P__
+//#define __AVR_ATmega328P__
+//#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+
 #include "platform.h"
 #include "usart.h"
 #include "adc.h"
@@ -20,22 +25,22 @@ waterSensor sensor;
 uint8_t i;
 uint8_t new_val = 1;
 uint8_t ch;
-
 int main(void){
 
     initLeds();
     initADC();
-   // USART_Init(MYUBRR);
-    sei(); //turn on dem interrupts!
+    USART_Init(MYUBRR);
+    sei(); //turn on interrupts
     i=0;
 	while (1){
     	if(new_val){
     		new_val=0;
-    		humidityevaluate(sensor);
+    		//humidityevaluate(sensor);
+    		serial_send(sensor);
     	}
     	if(~(ADCSRA & (1<<ADSC))){
     		adc_read_int(i);
-    		if(i==2)
+    		if(i==NSENSORS-1)
     			i=0;
     		else
     			i++;
