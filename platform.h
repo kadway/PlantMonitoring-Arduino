@@ -9,7 +9,7 @@
 #define PLATFORM_H_
 #define F_CPU 20000000UL
 
-#define NSENSORS 4
+#define NSENSORS 6
 // PD0 & PD1 -> RX TX IO0 & IO1
 
 #define G1 0X04 // LED is on PD2 IO 2

@@ -24,38 +24,29 @@
 
 waterSensor sensor;
 
-uint8_t new_val = 1;
+uint8_t new_val = 0;
 uint8_t ch;
 int main(void){
-	uint8_t i, j, k;
+	uint8_t i, j;
     initLeds();
     initADC();
     USART_Init(MYUBRR);
     sei(); //turn on interrupts
     i=0;
-   // j=0;
-    k=0;
 	while (1){
     	if(new_val){
     		new_val=0;
-    		//humidityevaluate(sensor);
     		serial_send(sensor);
-    		//for(j=0; j<; j++){
-    	    	for(k=0; k<60; k++){
-    	    		_delay_ms(1000);
-     	   		//}
-    		}
     	}
-    	if(~(ADCSRA & (1<<ADSC))){
-    		adc_read_int(i);
-    		if(i==NSENSORS-1)
+    	if((~(ADCSRA & (1<<ADSC)))&&(~new_val)){
+    		if(i==NSENSORS){
     			i=0;
-    		else
-    			i++;
-
+    			for(j=0; j<60;j++)
+    				_delay_ms(5000);
+    		}
+    		adc_read_int(i);
+    		i++;
     	}
-
-
     	//set_sleep_mode(SLEEP_MODE_IDLE);
 	}
     return 0; // never reached
@@ -64,7 +55,7 @@ int main(void){
 ISR(ADC_vect)
 {
 	sensor.val=ADC; //get conversion value
-	sensor.id= ADMUX & 0x03; //get MUX id to know from which sensor data belongs to
+	sensor.id= ADMUX & 0x07; //get MUX id to know from which sensor data belongs to
 	ADCSRA &= 0xEF; //clean interrupt bit
 	new_val=1; //set flag to 1 indicating new value is available
 }
