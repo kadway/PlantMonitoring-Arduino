@@ -53,7 +53,7 @@ struct tm {
 };
 
 // statically allocated 
-extern struct tm _tm;
+extern struct tm time;
 
 // Initialize the RTC and autodetect type (DS1307 or DS3231)
 void rtc_init(void);

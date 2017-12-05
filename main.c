@@ -5,51 +5,53 @@
  *      Author: johny
  */
 
-//#ifndef __AVR_ATmega328P__
-//#define __AVR_ATmega328P__
-//#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/power.h>
 #include <avr/interrupt.h>
-#include <avr/sleep.h>
-#include "platform.h"
-#include "usart.h"
-#include "adc.h"
-#include "leds.h"
-#include "debug.h"
-#include "timer.h"
+#include "platform/platform.h"
+#include "platform/leds.h"
+
+#include "atmega328p/adc.h"
+#include "atmega328p/uart.h"
 
 waterSensor sensor;
 
 uint8_t new_val = 0;
 uint8_t ch;
+
 int main(void){
-	uint8_t i, j;
-    initLeds();
-    initADC();
-    USART_Init(MYUBRR);
-    sei(); //turn on interrupts
-    i=0;
+	char buf[32];
+	uint8_t next_val = 0;
+
+	platformInit();
+
 	while (1){
-    	if(new_val){
-    		new_val=0;
-    		serial_send(sensor);
-    	}
-    	if((~(ADCSRA & (1<<ADSC)))&&(~new_val)){
-    		if(i==NSENSORS){
-    			i=0;
-    			for(j=0; j<60;j++)
-    				_delay_ms(5000);
-    		}
-    		adc_read_int(i);
-    		i++;
-    	}
-    	//set_sleep_mode(SLEEP_MODE_IDLE);
+		if(new_val){
+			sprintf(buf, "Sensor %d: %d \n", sensor.id, sensor.val);
+			uartSendString(buf);
+			cleanBuf(buf);
+			new_val=0;
+			next_val++;
+		}
+		if(~new_val && next_val < NSENSORS){
+			//sprintf(buf, " ADC read sensor: %d.\n", next_val);
+			//uartSendString(buf);
+			//cleanBuf(buf);
+			adc_read_int(next_val);
+			_delay_ms(50);
+		}
+		else if(next_val==NSENSORS){
+			readTemperatureRTC();
+			_delay_ms(50);
+			goToSleep();
+			next_val=0;
+		}
 	}
-    return 0; // never reached
+	return 0; // never reached
 }
 
 ISR(ADC_vect)
@@ -60,7 +62,12 @@ ISR(ADC_vect)
 	new_val=1; //set flag to 1 indicating new value is available
 }
 
-ISR(TIMER1_OVF_vect) /* timer 1 interrupt service routine */
+ISR(INT0_vect)
 {
-   timer_stop();
+
 }
+
+//ISR(TIMER1_OVF_vect) /* timer 1 interrupt service routine */
+//{
+//   timer_stop();
+//}

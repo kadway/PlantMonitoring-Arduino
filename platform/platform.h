@@ -26,15 +26,23 @@
 #define LEDS_PD G1|Y1|W1|G2|Y2|W2
 #define LEDS_PB G1|Y1|W1|G2|Y2|W2
 
+//#define SET_TIME
+
+
 typedef struct waterSensors{
 	uint16_t val;
 	uint8_t id;
 }waterSensor;
 
+void platformInit(void);
 void initLeds(void);
+void wakeInterruptInit(void);
+void setTimeRTC(void);
+void readTemperatureRTC(void);
+void goToSleep(void);
 void serial_init(void);
-void humidityevaluate(waterSensor sensor);
-void serial_send(waterSensor sensor);
+void cleanBuf(char *buf);
+//void serial_send(waterSensor sensor);
 
 #endif /* PLATFORM_H_ */
 

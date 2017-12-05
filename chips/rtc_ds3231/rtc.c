@@ -79,7 +79,7 @@
 #define CH_BIT 7 // clock halt bit
 
 // statically allocated structure for time value
-struct tm _tm;
+struct tm time;
 
 uint8_t dec2bcd(uint8_t d)
 {
@@ -120,10 +120,10 @@ void rtc_init(void)
 	// 3) Read back the value
 	//   equal to the one written: DS1307, write back saved value and return
 	//   different from written:   DS3231
-	
+
 	uint8_t temp1 = rtc_read_byte(0x11);
 	uint8_t temp2 = rtc_read_byte(0x12);
-	
+
 	rtc_write_byte(0xee, 0x11);
 	rtc_write_byte(0xdd, 0x12);
 
@@ -169,27 +169,27 @@ struct tm* rtc_get_time(void)
 	// This starts the clock for a DS1307, and has no effect for a DS3231
 	rtc[0] &= ~(_BV(CH_BIT)); // clear bit
 
-	_tm.sec = bcd2dec(rtc[0]);
-	_tm.min = bcd2dec(rtc[1]);
-	_tm.hour = bcd2dec(rtc[2]);
-	_tm.mday = bcd2dec(rtc[4]);
-	_tm.mon = bcd2dec(rtc[5] & 0x1F); // returns 1-12
+	time.sec = bcd2dec(rtc[0]);
+	time.min = bcd2dec(rtc[1]);
+	time.hour = bcd2dec(rtc[2]);
+	time.mday = bcd2dec(rtc[4]);
+	time.mon = bcd2dec(rtc[5] & 0x1F); // returns 1-12
 	century = (rtc[5] & 0x80) >> 7;
-	_tm.year = century == 1 ? 2000 + bcd2dec(rtc[6]) : 1900 + bcd2dec(rtc[6]); // year 0-99
-	_tm.wday = bcd2dec(rtc[3]); // returns 1-7
+	time.year = century == 1 ? 2000 + bcd2dec(rtc[6]) : 1900 + bcd2dec(rtc[6]); // year 0-99
+	time.wday = bcd2dec(rtc[3]); // returns 1-7
 
-	if (_tm.hour == 0) {
-		_tm.twelveHour = 0;
-		_tm.am = 1;
-	} else if (_tm.hour < 12) {
-		_tm.twelveHour = _tm.hour;
-		_tm.am = 1;
+	if (time.hour == 0) {
+		time.twelveHour = 0;
+		time.am = 1;
+	} else if (time.hour < 12) {
+		time.twelveHour = time.hour;
+		time.am = 1;
 	} else {
-		_tm.twelveHour = _tm.hour - 12;
-		_tm.am = 0;
+		time.twelveHour = time.hour - 12;
+		time.am = 0;
 	}
 
-	return &_tm;
+	return &time;
 }
 
 void rtc_get_time_s(uint8_t* hour, uint8_t* min, uint8_t* sec)
@@ -575,10 +575,10 @@ struct tm* rtc_get_alarm(void)
 	uint8_t hour, min, sec;
 
 	rtc_get_alarm_s(&hour, &min, &sec);
-	_tm.hour = hour;
-	_tm.min = min;
-	_tm.sec = sec;
-	return &_tm;
+	time.hour = hour;
+	time.min = min;
+	time.sec = sec;
+	return &time;
 }
 
 bool rtc_check_alarm(void)
