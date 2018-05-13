@@ -8,8 +8,6 @@
 #ifndef PLATFORM_H_
 #define PLATFORM_H_
 
-#define NSENSORS 6
-// PD0 & PD1 -> RX TX IO0 & IO1
 
 #define G1 0X04 // LED is on PD2 IO 2
 #define Y1 0X08 // LED is on PD3 IO 3
@@ -27,12 +25,9 @@
 #define LEDS_PB G1|Y1|W1|G2|Y2|W2
 
 //#define SET_TIME
+//#define debug
+//#define SET_TIME
 
-
-typedef struct waterSensors{
-	uint16_t val;
-	uint8_t id;
-}waterSensor;
 
 void platformInit(void);
 void initLeds(void);

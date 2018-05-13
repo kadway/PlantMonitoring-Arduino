@@ -14,52 +14,68 @@
 #include <avr/interrupt.h>
 #include "platform/platform.h"
 #include "platform/leds.h"
-
+#include "chips/rtc_ds3231/rtc.h"
 #include "atmega328p/adc.h"
 #include "atmega328p/uart.h"
 
-waterSensor sensor;
-
-uint8_t new_val = 0;
-uint8_t ch;
-
+//uint8_t ch = 0;
+uint8_t adcval;
+uint8_t temp;
+struct tm* tm;
 int main(void){
 	char buf[32];
-	uint8_t next_val = 0;
-
 	platformInit();
 
 	while (1){
-		if(new_val){
-			sprintf(buf, "Sensor %d: %d \n", sensor.id, sensor.val);
+			adc_read_int(0);
+			_delay_ms(1000);
+#ifdef debug
+			sprintf(buf, " New loop and Light is: %d.%d \n", adcval);
 			uartSendString(buf);
 			cleanBuf(buf);
-			new_val=0;
-			next_val++;
-		}
-		if(~new_val && next_val < NSENSORS){
-			//sprintf(buf, " ADC read sensor: %d.\n", next_val);
+			tm = rtc_get_time();
+			sprintf(buf, " Time is %d:%d:%d \n", tm->hour, tm->min, tm->sec);
+			uartSendString(buf);
+			cleanBuf(buf);
+#endif
+			if(adcval < 45){
+			   ledsON(G3, 2); 	   //leds on (id=2 for port B)
+#ifdef debug
+			   sprintf(buf, " Light: %d.%d\n Led ON and Going to sleep now \n", adcval);
+			   uartSendString(buf);
+			   cleanBuf(buf);
+			   _delay_ms(1000);
+#endif
+			   goToSleep();
+				}
+			else{
+					ledsOFF(G3, 2); 	   //leds on (id=2 for port B)
+#ifdef debug
+				    sprintf(buf, " Light: %d.%d\n Led OFF and Going to sleep now \n", adcval);
+					uartSendString(buf);
+					cleanBuf(buf);
+					_delay_ms(1000);
+#endif
+					goToSleep();
+				}
+			_delay_ms(1000);
 			//uartSendString(buf);
 			//cleanBuf(buf);
-			adc_read_int(next_val);
-			_delay_ms(50);
-		}
-		else if(next_val==NSENSORS){
-			readTemperatureRTC();
-			_delay_ms(50);
-			goToSleep();
-			next_val=0;
-		}
+			//readTemperatureRTC();
+			//_delay_ms(1);
+			//sprintf(buf, "Temp: %d.%d\n", temp);
+			//uartSendString(buf);
+			//cleanBuf(buf);
+			//goToSleep();
 	}
 	return 0; // never reached
 }
 
 ISR(ADC_vect)
 {
-	sensor.val=ADC; //get conversion value
-	sensor.id= ADMUX & 0x07; //get MUX id to know from which sensor data belongs to
+	adcval=ADC; //get conversion value
+	//ch= ADMUX & 0x07; //get MUX id to know from which sensor data belongs to
 	ADCSRA &= 0xEF; //clean interrupt bit
-	new_val=1; //set flag to 1 indicating new value is available
 }
 
 ISR(INT0_vect)

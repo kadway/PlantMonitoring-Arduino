@@ -95,6 +95,7 @@ enum RTC_SQW_FREQ { FREQ_1 = 0, FREQ_1024, FREQ_4096, FREQ_8192 };
 void rtc_SQW_enable(bool enable);
 void rtc_SQW_set_freq(enum RTC_SQW_FREQ freq);
 void rtc_osc32kHz_enable(bool enable);
+void rtc_alarm_enable(bool enable);
 
 // Alarm functionality
 void rtc_reset_alarm(void);

@@ -136,6 +136,7 @@ void rtc_init(void)
 	else {
 		s_is_ds3231 = true;
 	}
+	rtc_SQW_enable(0); //disable SQW and enable interrupt
 }
 
 // Autodetection
@@ -410,7 +411,7 @@ void rtc_SQW_enable(bool enable)
 		twi_end_transmission();
 
 	}
-	else { // DS3231
+	else { //DS3231
 		twi_begin_transmission(RTC_ADDR);
 		twi_send_byte(0x0E);
 		twi_end_transmission();
@@ -500,6 +501,32 @@ void rtc_osc32kHz_enable(bool enable)
 	twi_end_transmission();
 }
 
+void rtc_alarm_enable(bool enable)
+{
+
+		twi_begin_transmission(RTC_ADDR);
+		twi_send_byte(0x0E);
+		twi_end_transmission();
+
+		// read control
+   		twi_request_from(RTC_ADDR, 1);
+		uint8_t control = twi_receive();
+
+		if (enable) {
+			control |=  0b00000111; // set enable INTCN and alarms
+			control &= ~0b01000000; // set enable INTCN and alarms
+		}
+		else {
+			control &= ~0b00000000; // disable INTCN and alarms
+		}
+
+		// write control back
+		twi_begin_transmission(RTC_ADDR);
+		twi_send_byte(0x0E);
+		twi_send_byte(control);
+		twi_end_transmission();
+
+}
 // Alarm functionality
 // fixme: should decide if "alarm disabled" mode should be available, or if alarm should always be enabled 
 // at 00:00:00. Currently, "alarm disabled" only works for ds3231
@@ -539,14 +566,15 @@ void rtc_set_alarm_s(uint8_t hour, uint8_t min, uint8_t sec)
 		 *  0ah: A1M4:1  Alarm 1 day/date (bit6: 1 for day, 0 for date)
 		 *  Sets alarm to fire when hour, minute and second matches
 		 */
+		// clear alarm flag
+		uint8_t val = rtc_read_byte(0x0f);
+		rtc_write_byte(val & ~0b00000011, 0x0f);
+
 		rtc_write_byte(dec2bcd(sec),  0x07); // second
 		rtc_write_byte(dec2bcd(min),  0x08); // minute
 		rtc_write_byte(dec2bcd(hour), 0x09); // hour
 		rtc_write_byte(0b10000001,         0x0a); // day (upper bit must be set)
 
-		// clear alarm flag
-		uint8_t val = rtc_read_byte(0x0f);
-		rtc_write_byte(val & ~0b00000001, 0x0f);
 	}
 }
 
